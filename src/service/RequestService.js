@@ -70,7 +70,6 @@ async function getRequestByAccount(requestInfo){
     try{
         let username = requestInfo.username;
         let {requests} = await queryRequestByUsername(username);
-        console.log(requests);
         return requests;
     } catch(error){
         console.error(`Requests retrieval failed. Error: ${error}`);
@@ -92,8 +91,24 @@ async function getRequestsByProcessed(requestInfo){
 async function createRequest(requestInfo) {
     //existingRequest is null if there is no account with that info
     let existingRequest = await getRequestfromDB({request_id: requestInfo.request_id});
-    if(!existingRequest){
+    if(existingRequest === null){
         let request = requestInfo;
+        try{
+            if(requestInfo.description === undefined){
+                throw ReferenceError;
+            }
+        } catch(error){
+            console.error(`No Description detected. Error: ${error}`);
+            return false;
+        }
+        try{
+            if(requestInfo.amount === undefined){
+                throw ReferenceError;
+            }
+        } catch(error){
+            console.error(`No Amount detected. Error: ${error}`);
+            return false;
+        }
         if(requestInfo && requestInfo.request_id === undefined){
             let requestId = uuid.v4();
             request = {
@@ -105,8 +120,6 @@ async function createRequest(requestInfo) {
                 request_status: "pending"
             }
             console.log(`No request_id detected. Generating request with id: ${requestId}`);
-            let form = await createRequestinDB(request);
-            return request;
         } else{
             request = {
                 request_id: requestInfo.request_id,
@@ -117,22 +130,18 @@ async function createRequest(requestInfo) {
                 request_status: "pending"
             }
             console.log(`Request_id detected. Creating request: ${request.request_id}`);
-            let form = await createRequestinDB(request);
-            return request;
         }
+        let form = await createRequestinDB(request);
+        return request;
     } else {
         console.log(`Request id: ${existingRequest.request_id} is already taken`);
         return false;
     }
 }
 
-async function processRequest(outcome){
-    let request = await RequestQueue.processNextRequest();
-    if(!request){
-        console.log("No Requests in Queue");
-        return false;
-    }
-    let requestId = request.request_id;
+async function processRequest(processData){
+    let requestId = processData.request_id;
+    let outcome = processData.outcome;
     let process_status = await getProcessedStatus({request_id: requestId});
     if(process_status){
         console.log("Request has already been processed");

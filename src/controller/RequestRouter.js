@@ -18,7 +18,7 @@ router.post('/create', async (req, res, next) => {
 });
 
 // Process Request
-router.patch('/process', async (req, res, next) => {
+router.post('/process', async (req, res, next) => {
     try {
         const data = await requestService.processRequest(req.body);
         res.status(200).json({ message: 'Request processed successfully', data });
