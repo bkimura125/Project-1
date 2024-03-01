@@ -20,7 +20,7 @@ router.post('/register', async (req, res, next) => {
 });
 
 //Login
-router.post('/login', async (req, res, next) => {
+router.put('/login', async (req, res, next) => {
     try{
         const data = await accountService.login(req.body);
         if(data !== null) res.status(201).json({message: `Login successful`, data});
@@ -34,7 +34,7 @@ router.post('/login', async (req, res, next) => {
 });
 
 //Logout
-router.post('/logout', async (req, res, next) => {
+router.put('/logout', async (req, res, next) => {
     try{
         const data = await accountService.logout(req.body);
         if(data) res.status(201).json({message: `Logout successful`, data: req.body});
